@@ -5,6 +5,8 @@ import Register from '../../frontend/src/Components/Register';
 import Login from "./Components/Login";
 import PrivateRoute from "./routes/PrivateRoute";
 import Landingpage from './Components/Landingpage';
+import ProfilePage from './Components/ProfilePage';
+import ChangePassword from './Components/ChangePassword';
 function App() {
   
   return (
@@ -16,6 +18,8 @@ function App() {
       <Route path='/login' element={<Login/>}/>
       <Route element={<PrivateRoute/>}>
         <Route path="/dashboard" element={<ProtectedPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/changePassword" element={<ChangePassword />} />
         </Route>
       </Routes>
     </Router>

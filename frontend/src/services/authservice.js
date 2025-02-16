@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000/token"; // FastAPI login endpoint
+const API_URL = "http://127.0.0.1:8000/auth/token"; // FastAPI login endpoint
 
 export const login = async (username, password) => {
     const formData = new FormData();
