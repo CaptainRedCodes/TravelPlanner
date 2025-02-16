@@ -30,7 +30,7 @@ const Register = () => {
 
       if (response.ok) {
         setSuccess('Registration successful! You can now log in.');
-        setTimeout(() => navigate('/'), 2000);
+        setTimeout(() => navigate('/login'), 2000);
       } else {
         const data = await response.json();
         setError(data.detail || 'Registration failed');
@@ -60,7 +60,9 @@ const Register = () => {
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="new-password"
+                onChange={(e) => setUsername(e.target.value)
+                }
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 placeholder="Enter your username"
               />
