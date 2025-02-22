@@ -48,6 +48,11 @@ chrome-user-data
 *.swp
 *.swo
 note.txt
+idea.txt
+
+alembic/versions/__pycache__/
+alembic/versions/*.pyc
+
 
 packages/react-devtools-core/dist
 packages/react-devtools-extensions/chrome/build
