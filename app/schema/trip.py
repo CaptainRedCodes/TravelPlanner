@@ -42,3 +42,9 @@ class TripResponse(TripCreate):
 
     class Config:
         from_attributes = True  # Correct usage for SQLAlchemy model conversion
+
+class TripUpdate(BaseModel):
+    place: Optional[str] = None
+    budget: Optional[BudgetLevel] = None
+    travel_type: Optional[TravelType] = None
+    duration: Optional[int] = None

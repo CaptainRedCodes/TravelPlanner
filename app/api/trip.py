@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.trip import Trip
 from app.db.dependency import get_db
-from app.schema.trip import TripCreate, TripResponse
+from app.schema.trip import TripCreate, TripResponse, TripUpdate
 from app.services.tripServices import generate_trip_data
 from app.core.security import oauth2_scheme, verify_token
 
@@ -57,9 +57,66 @@ def create_trip(
     return new_trip
 
 @router.get("/get/{trip_id}", response_model=TripResponse)
-def get_trip(trip_id: int, db: Session = Depends(get_db)):
+def get_trip(trip_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     """Fetch trip details by ID"""
+
+    payload = verify_token(token)
+    user_id = payload.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    
+    
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
+
+    if trip.user_id!=user.id:
+        raise HTTPException(status_code=403, detail="Not Authorised to access this trip")
+
     return trip
+
+@router.put("/update-trip/{trip_id}")
+def update_trip(trip_id: int, trip_update: TripUpdate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    payload = verify_token(token)
+    user_id = payload.get("user_id")
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    
+     if trip.user_id!=user.id:
+        raise HTTPException(status_code=403, detail="Not Authorised to access this trip")
+
+    # Update only provided fields
+    update_data = trip_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(trip, key, value)
+
+    db.commit()
+    db.refresh(trip)
+
+    # Send updated trip data to AI tripService
+    ai_generated_data = generate_trip_data(trip)
+
+    # Update AI-generated fields in DB
+    for key, value in ai_generated_data.items():
+        setattr(trip, key, value)
+
+    db.commit()
+    db.refresh(trip)
+
+    return {"message": "Trip updated successfully", "updated_trip": trip}
