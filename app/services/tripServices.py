@@ -10,6 +10,8 @@ def generate_trip_data(trip_data):
     """Fetch AI-generated trip details and external data"""
     place = trip_data.place
 
+    #print("Trip Data:", trip_data.__dict__)  # If trip_data is an object
+
     # Generate AI-based travel details
     ai_response = generate_ai_trip_details(trip_data)
 
@@ -130,20 +132,19 @@ List **4 nearby attractions**, each on a separate line:
     client = Groq(api_key=GROQ_API_KEY)
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="deepseek-r1-distill-llama-70b",
+        model="llama-3.3-70b-versatile",
     )
-
+    
     response_text = chat_completion.choices[0].message.content.strip()
+    
     
     return parse_ai_response(response_text)
 
 
-import json
 import re
 
 def parse_ai_response(response_text):
-    """Parse AI response and map the correct data fields"""
-    sections = response_text.split("\n\n")
+    """Parse AI response and map the correct data fields."""
     
     parsed_data = {
         "about": "",
@@ -155,77 +156,43 @@ def parse_ai_response(response_text):
         "best_time_to_visit": "",
         "nearby_activities": []
     }
-    
-    current_section = None
-    
+
+    sections = response_text.split("\n\n")  # Split into sections based on spacing
+
     for section in sections:
-        section = section.strip()
-        
-        # Skip empty sections
-        if not section:
+        lines = section.strip().split("\n")
+        if not lines:
             continue
-            
-        # First line is usually the section header
-        lines = section.split("\n")
-        first_line = lines[0].lower().strip()
-        
-        # Identify section based on first line content
-        if "about:" in first_line:
-            current_section = "about"
-            # Take everything after the header
-            parsed_data["about"] = "\n".join(lines[1:]).strip()
-            
-        elif "top activities:" in first_line:
-            current_section = "top_activities"
-            # Extract activities list, skip header
-            activities = [line.strip() for line in lines[1:] if line.strip() and line.strip().startswith("-")]
-            parsed_data["top_activities"] = [act.strip("- ") for act in activities]
-            
-        elif "top places:" in first_line:
-            current_section = "top_places"
-            places = [line.strip() for line in lines[1:] if line.strip() and line.strip().startswith("-")]
-            parsed_data["top_places"] = [place.strip("- ") for place in places]
-            
-        elif "day" in first_line and "itinerary:" in first_line.lower():
-            current_section = "itinerary"
-            # Get all day entries
-            itinerary = []
-            for line in lines:
-                if line.strip() and (line.strip().startswith("Day") or line.strip().startswith("-")):
-                    itinerary.append(line.strip("- "))
-            parsed_data["itinerary"] = itinerary
-            
-        elif "local cuisine:" in first_line:
-            current_section = "local_cuisine"
-            cuisine = [line.strip() for line in lines[1:] if line.strip() and line.strip().startswith("-")]
-            parsed_data["local_cuisine"] = [dish.strip("- ") for dish in cuisine]
-            
-        elif "packing checklist:" in first_line:
-            current_section = "packing_checklist"
-            items = [line.strip() for line in lines[1:] if line.strip() and line.strip().startswith("-")]
-            parsed_data["packing_checklist"] = [item.strip("- ") for item in items]
-            
-        elif "best time to visit:" in first_line:
-            current_section = "best_time_to_visit"
-            parsed_data["best_time_to_visit"] = "\n".join(lines[1:]).strip()
-            
-        elif "nearby activities:" in first_line:
-            current_section = "nearby_activities"
-            activities = [line.strip() for line in lines[1:] if line.strip() and line.strip().startswith("-")]
-            parsed_data["nearby_activities"] = [act.strip("- ") for act in activities]
-            
-    # Clean up any empty strings from lists
-    for key in parsed_data:
-        if isinstance(parsed_data[key], list):
-            parsed_data[key] = [item for item in parsed_data[key] if item]
-            
-    # Ensure text fields don't contain section headers
-    if parsed_data["about"]:
-        parsed_data["about"] = parsed_data["about"].replace("About:", "").strip()
-    if parsed_data["best_time_to_visit"]:
-        parsed_data["best_time_to_visit"] = parsed_data["best_time_to_visit"].replace("Best Time to Visit:", "").strip()
-        
+
+        first_line = lines[0].lower()
+
+        if "about" in first_line:
+            parsed_data["about"] = " ".join(lines[1:]).strip()
+
+        elif "top activities" in first_line:
+            parsed_data["top_activities"] = [line.strip("- ").strip() for line in lines[1:] if line.startswith("-")]
+
+        elif "top places" in first_line:
+            parsed_data["top_places"] = [line.strip("- ").strip() for line in lines[1:] if line.startswith("-")]
+
+        elif "itinerary" in first_line:
+            parsed_data["itinerary"] = [line.strip("- ").strip() for line in lines[1:] if line]
+
+        elif "local cuisine" in first_line:
+            parsed_data["local_cuisine"] = [line.strip("- ").strip() for line in lines[1:] if line.startswith("-")]
+
+        elif "packing checklist" in first_line:
+            parsed_data["packing_checklist"] = [line.strip("- ").strip() for line in lines[1:] if line.startswith("-")]
+
+        elif "best time to visit" in first_line:
+            parsed_data["best_time_to_visit"] = " ".join(lines[1:]).strip()
+
+        elif "nearby activities" in first_line:
+            parsed_data["nearby_activities"] = [line.strip("- ").strip() for line in lines[1:] if line.startswith("-")]
+
     return parsed_data
+
+
 
 
 def fetch_images(place):
