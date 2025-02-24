@@ -28,10 +28,11 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     """Decode and verify JWT token."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("user_id")
         username: str = payload.get("sub")
-        if not username:
+        if not user_id or not username:
             raise HTTPException(status_code=401, detail="Invalid token")
-        return {"username": username}
+        return {"username": username,"user_id":user_id}
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 

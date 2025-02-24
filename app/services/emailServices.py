@@ -9,7 +9,7 @@ async def send_verification_email(user_email: str, verification_token: str):
     # Generate email verification link
     #verification_link = f"https://yourdomain.com/verify/{verification_token}"  --prod
 
-    verification_link = f"http://127.0.0.1:8000/verify/{verification_token}"  
+    verification_link = f"http://127.0.0.1:8000/auth/verify-email/{verification_token}"  
     print(f"Verification Link: {verification_link}")
 
 
