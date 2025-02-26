@@ -7,6 +7,7 @@ import Landingpage from './Components/Landingpage';
 import ProfilePage from './Components/ProfilePage';
 import ChangePassword from './Components/ChangePassword';
 import TripResults from './Components/TripResults';
+import VerifyEmail from './Components/VerifyEmail';
 function App() {
   
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path='/' element={<Landingpage/>}/>  
       <Route path="/register" element={<Register />} />
       <Route path='/login' element={<Login/>}/>
+      <Route path="/verify/:token" element={<VerifyEmail />} />
       <Route element={<PrivateRoute/>}>
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/changePassword" element={<ChangePassword />} />

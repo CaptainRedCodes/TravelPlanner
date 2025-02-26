@@ -140,7 +140,7 @@ const Register = () => {
             {success && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm flex items-center">
                 <UserCheck className="h-5 w-5 mr-2" />
-                {success}
+                {success} "You can now Confirm your email by checking out your inbox"
               </div>
             )}
 
