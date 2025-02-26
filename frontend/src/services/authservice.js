@@ -14,6 +14,7 @@ export const login = async (username, password) => {
 
         if (response.data.access_token) {
             localStorage.setItem("token", response.data.access_token);
+            localStorage.setItem("username",username);
         }
 
         return response.data;
@@ -29,4 +30,9 @@ export const logout = () => {
 
 export const getToken = () => {
     return localStorage.getItem("token");
+};
+
+
+export const getUsername = () => {
+  return localStorage.getItem("username");
 };

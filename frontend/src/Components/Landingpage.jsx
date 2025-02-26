@@ -1,194 +1,178 @@
-import React from 'react';
-import { ChevronRight, Search, Map, Calendar, Star, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import AnimatedSearchBox from "./AnimatedSearchBox";
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+
+  // Check if user is logged in on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUsername = localStorage.getItem("username");
+    if (token && storedUsername) {
+      setIsLoggedIn(true);
+      setUsername(storedUsername);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    setIsLoggedIn(false);
+    setUsername("");
+    navigate("/");
+  };
+
+  const handleSearch = (searchParams) => {
+    const { places, travelType, budget, duration } = searchParams;
+
+    if (places.every((place) => !place.trim())) return; // Ensure at least one place
+
+    // Convert data into a query string
+    const queryParams = new URLSearchParams({
+      budget,
+      travel_type: travelType,
+      duration: duration.toString(),
+    });
+
+    // Add multiple places to query params
+    places.forEach((place) => queryParams.append("place", place));
+
+    // Navigate to TripResults with the correct params
+    navigate(`/trip-results?${queryParams.toString()}`);
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <header className="relative h-screen">
-        <div className="absolute inset-0 bg-black/40 z-10" />
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: "url('/bg.jpg')" }}
-        />
-        
-        <nav className="relative z-20 container mx-auto px-6 py-6 flex items-center justify-between">
-          <div className="text-white text-2xl font-bold">Travel Website</div>
-          <div className="hidden md:flex space-x-8 text-white">
-            <a href="#" className="hover:text-blue-200">Destinations</a>
-            <a href="#" className="hover:text-blue-200">Packages</a>
-            <a href="#" className="hover:text-blue-200">About Us</a>
-            <a href="#" className="hover:text-blue-200">Contact</a>
-          </div>
-         <a href='/register'><button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700">
-            Register
-          </button>
-          </a>
-        </nav>
-
-        <div className="relative z-20 container mx-auto px-6 h-full flex items-center">
-          <div className="max-w-2xl">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Discover Your Next Adventure
-            </h1>
-            <p className="text-xl text-white/90 mb-8">
-              Explore breathtaking destinations and create unforgettable memories with our curated travel experiences.
-            </p>
-            
-            {/* Search Bar */}
-<div className="bg-white p-4 rounded-lg shadow-lg flex flex-wrap gap-4 items-center">
-  <div className="flex-1 min-w-[200px] flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2">
-    <Search className="text-gray-400" />
-    <input 
-      type="text" 
-      placeholder="Where to?"
-      className="w-full outline-none bg-transparent"
-    />
-  </div>
-  <div className="flex-1 min-w-[200px] flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2">
-    <Calendar className="text-gray-400" />
-    <input 
-      type="date" 
-      placeholder="When?"
-      className="w-full outline-none bg-transparent"
-    />
-  </div>
-  <button className="bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700">
-    Search
-  </button>
-</div>
-
-          </div>
-        </div>
-      </header>
-
-      {/* Featured Destinations */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-12">Popular Destinations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                <div className="h-48 bg-gray-200">
-                  <img 
-                    src={`/api/placeholder/400/300`}
-                    alt="destination"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">Destination {i}</h3>
-                  <p className="text-gray-600 mb-4">
-                    Experience the beauty and culture of this amazing destination.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Star className="text-yellow-400 w-4 h-4 fill-current" />
-                      <span className="text-gray-600">4.8</span>
-                    </div>
-                    <button className="text-blue-600 flex items-center gap-1 hover:text-blue-700">
-                      Learn More <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              {
-                icon: <Map className="w-8 h-8 text-blue-600" />,
-                title: "Curated Destinations",
-                description: "Hand-picked locations to ensure the best travel experience"
-              },
-              {
-                icon: <Calendar className="w-8 h-8 text-blue-600" />,
-                title: "Best Time to Visit",
-                description: "Expert recommendations on when to visit each destination"
-              },
-              {
-                icon: <Star className="w-8 h-8 text-blue-600" />,
-                title: "Top-Rated Experience",
-                description: "Consistently high-rated tours and activities"
-              }
-            ].map((feature, i) => (
-              <div key={i} className="text-center">
-                <div className="inline-block p-4 bg-blue-50 rounded-full mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-blue-600 py-20">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
-            Ready to Start Your Journey?
-          </h2>
-          <p className="text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied travelers who have experienced the world with us.
-          </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 inline-flex items-center gap-2">
-            Start Planning <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h4 className="text-xl font-bold mb-4">Wanderlust</h4>
-              <p className="text-gray-400">
-                Making your travel dreams come true since 2024.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">About Us</a></li>
-                <li><a href="#" className="hover:text-white">Destinations</a></li>
-                <li><a href="#" className="hover:text-white">Packages</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Email: info@wanderlust.com</li>
-                <li>Phone: +1 234 567 890</li>
-                <li>Address: 123 Travel Street</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Newsletter</h4>
-              <p className="text-gray-400 mb-4">
-                Subscribe to our newsletter for travel updates and exclusive offers.
-              </p>
-              <div className="flex gap-2">
-                <input 
-                  type="email" 
-                  placeholder="Your email"
-                  className="bg-gray-800 px-4 py-2 rounded flex-1 text-white"
-                />
-                <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
-                  Subscribe
+    <div className="flex flex-col min-h-screen">
+      {/* Navigation Bar */}
+      <nav className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-4 shadow-lg">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link to="/" className="text-2xl font-bold flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+            TravelAI
+          </Link>
+          
+          <div className="flex items-center space-x-4">
+            {isLoggedIn ? (
+              <>
+                <span className="hidden md:inline">Welcome, {username}!</span>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition duration-300 flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V7.414l-5-5H3zm7 5a1 1 0 10-2 0v4.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L12 12.586V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Logout
                 </button>
-              </div>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/login" 
+                  className="bg-transparent border border-white hover:bg-white hover:text-blue-800 text-white py-2 px-4 rounded-lg transition duration-300"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="bg-white text-blue-800 hover:bg-blue-100 py-2 px-4 rounded-lg transition duration-300"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Hero Section */}
+      <div
+        className="relative flex-grow flex flex-col items-center justify-center bg-cover bg-center"
+        style={{ backgroundImage: "url('/bg.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-lg animate-fade-in">
+            Discover Your Next Adventure
+          </h1>
+          
+          <p className="text-lg md:text-xl text-white/90 mt-4 mb-8 max-w-2xl mx-auto">
+            Explore breathtaking destinations with AI-generated travel plans 
+            customized just for you.
+          </p>
+          
+          {/* Animated Search Box */}
+          <div className="mt-6 w-full max-w-lg mx-auto">
+            <AnimatedSearchBox 
+              onSearch={handleSearch} 
+              isDisabled={!isLoggedIn}
+              loginPrompt={!isLoggedIn ? "Please login to plan your trip" : ""}
+            />
+          </div>
+          
+          {!isLoggedIn && (
+            <div className="mt-4 bg-white/10 backdrop-blur-md p-3 rounded-lg inline-block">
+              <p className="text-white flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <Link to="/login" className="underline font-semibold">Login</Link> or <Link to="/register" className="underline font-semibold">Register</Link> to plan your next adventure!
+              </p>
             </div>
+          )}
+        </div>
+        
+        {/* Features Section */}
+        <div className="w-full mt-12 relative z-10 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-white">
+              <div className="bg-blue-600 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">AI-Powered Plans</h3>
+              <p>Get personalized travel itineraries generated by advanced AI specifically for your preferences.</p>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-white">
+              <div className="bg-blue-600 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Budget Friendly</h3>
+              <p>Plan trips that match your budget perfectly, from economical getaways to luxury experiences.</p>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-white">
+              <div className="bg-blue-600 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Custom Experiences</h3>
+              <p>Discover hidden gems and local favorites tailored to your travel style and preferences.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Footer */}
+      <footer className="bg-blue-900 text-white py-6">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; {new Date().getFullYear()} TravelAI. All rights reserved.</p>
+          <div className="flex justify-center mt-4 space-x-4">
+            <a href="#" className="hover:text-blue-300 transition">About</a>
+            <a href="#" className="hover:text-blue-300 transition">Privacy</a>
+            <a href="#" className="hover:text-blue-300 transition">Terms</a>
+            <a href="#" className="hover:text-blue-300 transition">Contact</a>
           </div>
         </div>
       </footer>
