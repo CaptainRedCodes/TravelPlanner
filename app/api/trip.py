@@ -11,7 +11,7 @@ from typing import List
 router = APIRouter()
 
 @router.post("/generate/", status_code=201, response_model=TripResponse)
-def create_trip(
+async def create_trip(
     trip_data: TripCreate,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -29,6 +29,7 @@ def create_trip(
 
     # Generate AI-powered trip details
     trip_details = generate_trip_data(trip_data)
+    
 
     new_trip = Trip(
         user_id=int(user_id),
