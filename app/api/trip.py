@@ -6,6 +6,7 @@ from app.db.dependency import get_db
 from app.schema.trip import TripCreate, TripResponse, TripUpdate
 from app.services.tripServices import generate_trip_data
 from app.core.security import oauth2_scheme, verify_token
+from typing import List
 
 router = APIRouter()
 
@@ -15,10 +16,10 @@ def create_trip(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
-    """Generate and store trip details based on user input"""
+    """Generate and store trip details for multiple destinations"""
     payload = verify_token(token)
     user_id = payload.get("user_id")
-    
+
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -26,12 +27,12 @@ def create_trip(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Generate trip details
+    # Generate AI-powered trip details
     trip_details = generate_trip_data(trip_data)
 
     new_trip = Trip(
         user_id=int(user_id),
-        place=trip_data.place,
+        places=trip_data.places,  # Now supports multiple places
         budget=trip_data.budget,
         travel_type=trip_data.travel_type,
         duration=trip_data.duration,
@@ -45,7 +46,7 @@ def create_trip(
         best_time_to_visit=trip_details["best_time_to_visit"],
         nearby_activities=trip_details["nearby_activities"]
     )
-    
+
     try:
         db.add(new_trip)
         db.commit()
@@ -53,7 +54,7 @@ def create_trip(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
-    
+
     return new_trip
 
 @router.get("/get/{trip_id}", response_model=TripResponse)
@@ -62,7 +63,7 @@ def get_trip(trip_id: int, db: Session = Depends(get_db), token: str = Depends(o
 
     payload = verify_token(token)
     user_id = payload.get("user_id")
-    
+
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -70,21 +71,22 @@ def get_trip(trip_id: int, db: Session = Depends(get_db), token: str = Depends(o
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
-    
-    
+
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
 
-    if trip.user_id!=user.id:
-        raise HTTPException(status_code=403, detail="Not Authorised to access this trip")
+    if trip.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not Authorized to access this trip")
 
     return trip
 
+    
 @router.put("/update-trip/{trip_id}")
 def update_trip(trip_id: int, trip_update: TripUpdate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    """Update an existing trip."""
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    
     payload = verify_token(token)
     user_id = payload.get("user_id")
 
@@ -97,19 +99,16 @@ def update_trip(trip_id: int, trip_update: TripUpdate, db: Session = Depends(get
 
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
-    
-     if trip.user_id!=user.id:
-        raise HTTPException(status_code=403, detail="Not Authorised to access this trip")
+
+    if trip.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this trip")
 
     # Update only provided fields
     update_data = trip_update.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(trip, key, value)
 
-    db.commit()
-    db.refresh(trip)
-
-    # Send updated trip data to AI tripService
+    # Generate AI-enhanced trip details based on new data
     ai_generated_data = generate_trip_data(trip)
 
     # Update AI-generated fields in DB
